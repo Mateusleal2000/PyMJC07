@@ -2,69 +2,81 @@
 
 1. Qual é o nome do relator?
 
-    > Escreva sua resposta aqui
+    > Mateus Leal Gonçalves
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Escreva sua resposta aqui
+    > Parcialmente concluído
 
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Escreva sua resposta aqui
+    > O tratamento de erros do Parser não está contemplando todos os erros das gramática, porém os erros presentes nos exemplos foram capturados.
 
 4. O programa passa nos testes automatizados?
     
-    > Escreva sua resposta aqui
+    > Não passou nos testes automatizados, devido a duas falhas
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
     
-    > Escreva sua resposta aqui
+    > Foram executados 46 testes e 2 falhas foram encontradas, uma referente à quantidade de tokens e outra à quantidade de token MINUS
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
     
-    > Escreva sua resposta aqui
+    > - Compreender o funcionamento da biblioteca SLY
+        - Remoção de ambiguidades da gramática da linguagem minijava, sendo necessário repensar a gramática, devido ao fato que ela é apresentada como uma expressão regular.
+        - Identificar os erros de sintaxe fornecidos pelo SLY e fazer o tratamento no parser.
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
     
-    > Escreva sua resposta aqui
+    > O trabalho foi realizado em conjunto por todos os integrantes, as reuniões foram realizadas por meio de conferências online (Discord) com o intuito de debater sobre a implementação e implementar. Todos os integrantes participaram ativamente da construção do Parser e do Lexer.
 
 
-# 2º Relatóio: Etapa AI-b (Árvores Sintática Abstrata e Análise Semântica)
+# 2º Relatório: Etapa AI-b (Árvores Sintática Abstrata e Análise Semântica)
 
 1. Qual é o nome do relator?
 
-    > Escreva sua resposta aqui
+    > Gabriel Marques Maranhão
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Escreva sua resposta aqui
+    > Parcialmente concluído
 
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Escreva sua resposta aqui
+    > Alguns erros de semântica não foram identificados.
 
 4. O programa passa nos testes automatizados?
     
-    > Escreva sua resposta aqui
+    > Não passou nos testes automatizados dos seguintes arquivos de análise semântica:
+       -  SemanticFaultyReturnTypeAndArgTypeUsage.java
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
-    
-    > Escreva sua resposta aqui
+
+    > Foram executados 73 testes e 1 falha foi encontrada:
+        - SemanticFaultyReturnTypeAndArgTypeUsage.java
+          - Falha: 
+                File "D:\semestre 7\Compiladores\Trabalho 2\PyMJCG07\tests\test_semantic.py", line 188, in 
+                    test_number_of_return_type_mismatch self.assertEqual(actual, expected, test_file_name) AssertionError: 2 != 1 : SemanticFaultyReturnTypeAndArgUsage.java
+
+        Além disso, outras falhas que não eram semânticas foram contornadas com mudanças nos arquivos de teste, e estão comentadas nos mesmos.
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
     
-    > Escreva sua resposta aqui
+    > - Entendimento do visitor (TypeChecking e FillSymbolTable) e classes do AST
+    > - Dificuldades no debug 
+        - Confusão em que parte do visitor estavam ocorrendo erros semânticos, retornos None.
+  
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
-    
-    > Escreva sua resposta aqui
+
+    > O trabalho foi realizado em conjunto por todos os integrantes, as reuniões foram realizadas por meio de conferências online (Discord) com o intuito de debater sobre a implementação e implementar. Todos os integrantes participaram ativamente da implementação.
 
 
 # 3º Relatóio: Etapa AI-c (Tradução para o Código Intermediário)
 
 1. Qual é o nome do relator?
 
-    > Escreva sua resposta aqui
+    > Mateus Leal Gonçalves
 
 2. A etapa foi completamente ou parcialmente concluída?
 
