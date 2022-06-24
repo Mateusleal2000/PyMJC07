@@ -6,7 +6,7 @@ from typing import List
 from pymjc.back.assem import MOVE
 
 from pymjc.front.ast import *
-from pymjc.front.frame import Frame
+from pymjc.front.frame import Access, Frame
 from pymjc.front import translate
 from pymjc.front import tree #CONST, Stm, MOVE
 from pymjc.front.visitorkinds import *
@@ -1753,13 +1753,14 @@ class TranslateVisitor(IRVisitor):
 
         calleeExp: translate.Exp = element.callee_exp.accept_ir(self)
         calleeName: translate.Exp = element.callee_name_id.accept_ir(self)
+        label : tree.LABEL = tree.LABEL(temp.Label(self.call_class_name+"$"+element.callee_name_id.name)) 
 
         l = List[tree.ExpList]
-
+        l.append(calleeExp)
         for i in range(element.arg_list.size()):
-            l.append(element.arg_list.element_at(i).accept_ir(self).un_ex())
-
-        #return translate.Exp(tree.CALL(self.call_class_name+"$"+calleeName, l))
+            l.insert(0,element.arg_list.element_at(i).accept_ir(self).un_ex())
+        
+        return translate.Exp(tree.CALL(tree.NAME(label), l))
 
     def visit_integer_literal(self, element: IntegerLiteral) -> translate.Exp:
         return translate.Exp(tree.CONST(element.value))
@@ -1771,6 +1772,23 @@ class TranslateVisitor(IRVisitor):
         return translate.Exp(tree.CONST(0))
 
     def visit_identifier_exp(self, element: IdentifierExp) -> translate.Exp:
+
+        access: Access = self.current_frame.alloc_local(False)
+        currentClass : ClassEntry = self.symbol_table.curr_class
+        currentMethod : MethodEntry = self.symbol_table.curr_method
+
+        isObject = currentClass.get_field(element.name)
+        isParam =  currentMethod.get_param_by_name(element.name)
+        isLocal = currentMethod.get_local_by_name(element.name)
+
+        if isObject == None:
+            if isParam == None:
+                if isLocal != None:
+                    return translate.Exp(access)
+
+        # if self.symbol_table.get_class_entry(element.name) != None:
+        #     print("miau")
+
         return translate.Exp(tree.NAME(temp.Label(element.name)))
 
     def visit_this(self, element: This) -> translate.Exp:
@@ -1797,7 +1815,7 @@ class TranslateVisitor(IRVisitor):
         classEntry: ClassEntry = self.symbol_table.get_class_entry(objId)
         fields = classEntry.get_fields()
 
-        allocSize: tree.BINOP = tree.BINOP(tree.BINOP.MUL, tree.CONST(len(fields)), self.current_frame.word_size)
+        allocSize: tree.BINOP = tree.BINOP(tree.BINOP.MUL, tree.CONST(len(fields) + 1), self.current_frame.word_size)
         params = List[tree.Exp]
         params.append(allocSize)
 
@@ -1810,5 +1828,8 @@ class TranslateVisitor(IRVisitor):
         return translate.Exp(tree.BINOP(tree.BINOP.XOR(tree.CONST(1), exp.un_ex())))
 
     def visit_identifier(self, element: Identifier) -> translate.Exp:
-        id = element.name
+        #a: Access = self.var_access.get(self.call_class_name)
+        access: Access = self.var_access.get(element.name)
+        if access != None:    
+            return translate.Exp(access.exp())
         return translate.Exp(tree.TEMP(self.current_frame.FP()))
