@@ -1753,13 +1753,20 @@ class TranslateVisitor(IRVisitor):
 
         calleeExp: translate.Exp = element.callee_exp.accept_ir(self)
         calleeName: translate.Exp = element.callee_name_id.accept_ir(self)
-        label : tree.LABEL = tree.LABEL(temp.Label(self.call_class_name+"$"+element.callee_name_id.name)) 
+        label : temp.Label = temp.Label(self.call_class_name+"$"+element.callee_name_id.name)
 
-        l = List[tree.ExpList]
-        l.append(calleeExp)
+        l : tree.ExpList = tree.ExpList() 
         for i in range(element.arg_list.size()):
-            l.insert(0,element.arg_list.element_at(i).accept_ir(self).un_ex())
-        
+            l.add_head(element.arg_list.element_at(i).accept_ir(self).un_ex())
+        l.add_head(calleeExp.un_ex())
+
+        cEntry: ClassEntry = self.symbol_table.get_class_entry(self.call_class_name)
+        mEntry = cEntry.get_method(element.callee_name_id.name)
+        mReturnType = mEntry.get_return_type()
+
+        if (isinstance(mReturnType, IdentifierType)):
+            self.call_class_name = mReturnType.name
+
         return translate.Exp(tree.CALL(tree.NAME(label), l))
 
     def visit_integer_literal(self, element: IntegerLiteral) -> translate.Exp:
@@ -1772,24 +1779,25 @@ class TranslateVisitor(IRVisitor):
         return translate.Exp(tree.CONST(0))
 
     def visit_identifier_exp(self, element: IdentifierExp) -> translate.Exp:
-
-        access: Access = self.current_frame.alloc_local(False)
         currentClass : ClassEntry = self.symbol_table.curr_class
         currentMethod : MethodEntry = self.symbol_table.curr_method
+        t: Type = currentClass.get_field(element.name)
 
-        isObject = currentClass.get_field(element.name)
-        isParam =  currentMethod.get_param_by_name(element.name)
-        isLocal = currentMethod.get_local_by_name(element.name)
+        if currentMethod.get_local_by_name(element.name) is not None:
+            t = currentMethod.get_local_by_name(element.name)
+        if currentMethod.get_param_by_name(element.name) is not None:
+            t = currentMethod.get_param_by_name(element.name)
 
-        if isObject == None:
-            if isParam == None:
-                if isLocal != None:
-                    return translate.Exp(access)
+        if (isinstance(t, IdentifierType)):
+            self.call_class_name = t.name
 
-        # if self.symbol_table.get_class_entry(element.name) != None:
-        #     print("miau")
+        access: Access = self.var_access.get(element.name)
 
-        return translate.Exp(tree.NAME(temp.Label(element.name)))
+        if access is None:
+            access = self.current_frame.alloc_local(False)
+            self.var_access[element.name] = access
+        return translate.Exp(access.exp(tree.TEMP(self.current_frame.FP())))
+
 
     def visit_this(self, element: This) -> translate.Exp:
         self.call_class_name = self.symbol_table.curr_class_name
@@ -1821,6 +1829,8 @@ class TranslateVisitor(IRVisitor):
 
         objPtr: tree.EXP = self.current_frame.external_call("malloc", allocSize)
 
+        self.call_class_name = objId
+
         return translate.Exp(tree.MEM(objPtr))
 
     def visit_not(self, element: Not) -> translate.Exp:
@@ -1828,8 +1838,9 @@ class TranslateVisitor(IRVisitor):
         return translate.Exp(tree.BINOP(tree.BINOP.XOR(tree.CONST(1), exp.un_ex())))
 
     def visit_identifier(self, element: Identifier) -> translate.Exp:
-        #a: Access = self.var_access.get(self.call_class_name)
+        #self.call_class_name = element.name
         access: Access = self.var_access.get(element.name)
-        if access != None:    
-            return translate.Exp(access.exp())
-        return translate.Exp(tree.TEMP(self.current_frame.FP()))
+        if access is None:
+            access = self.current_frame.alloc_local(False)
+            self.var_access[element.name] = access
+        return translate.Exp(access.exp(tree.TEMP(self.current_frame.FP())))

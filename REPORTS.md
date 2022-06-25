@@ -80,27 +80,27 @@
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Escreva sua resposta aqui
+    > Apesar de termos feito a implementação de todos os métodos presentes no visitor, não fomos capazes de realizar os testes
 
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Escreva sua resposta aqui
+    > Faltaram a realização de testes
 
 4. O programa passa nos testes automatizados?
     
-    > Escreva sua resposta aqui
+    > Não houveram testes automatizados
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
     
-    > Escreva sua resposta aqui
+    > Não houveram testes automatizados
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
     
-    > Escreva sua resposta aqui
+    > A implementação de alguns métodos foram bem desafiadoras, especialmente os métodos visit_identifier e visit_identifier_exp, não estava ficando claro para nós como as verificações deveriam ser feitas. Algumas operações, principalmente as que envolvem o call_class_name, foram um pouco complicadas de compreender.
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
     
-    > Escreva sua resposta aqui
+    > O trabalho foi realizado em conjunto por todos os integrantes, as reuniões foram realizadas por meio de conferências online (Discord) com o intuito de debater sobre a implementação e implementar. Todos os integrantes participaram ativamente da implementação.
 
 
 # 4º Relatóio: Etapa AI-d (Seleção de Instruções)
