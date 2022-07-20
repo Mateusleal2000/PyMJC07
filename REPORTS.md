@@ -137,31 +137,31 @@
 
 1. Qual é o nome do relator?
 
-    > Escreva sua resposta aqui
+    > Gabriel Marques Maranhão
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Escreva sua resposta aqui
+    > Parcialmente concluída
 
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Escreva sua resposta aqui
+    > A tradução do arquivo RegAlloc não foi feita, e o método build_interference_graph() não foi concluído.
 
 4. O programa passa nos testes automatizados?
     
-    > Escreva sua resposta aqui
+    > Não existem testes automatizados
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
     
-    > Escreva sua resposta aqui
+    > Não existem testes automatizados
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
-    
-    > Escreva sua resposta aqui
+    > Dificuldade de entender como construir o grafo de interferências, além da falta de tempo devido à uma má organização do nosso tempo e ao choque de horários com atividades de outras disciplinas, o que tornou inviável a implementação das seções mais extensas desse código.
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
-    
-    > Escreva sua resposta aqui
+
+   > O trabalho foi realizado em conjunto por todos os integrantes, as reuniões foram realizadas por meio de conferências online (Discord) com o intuito de debater sobre a implementação e implementar. Todos os integrantes participaram ativamente da implementação.
+
 
 
 # 6º Relatóio: Etapa AI-f (Integração e Geração do Código Final)

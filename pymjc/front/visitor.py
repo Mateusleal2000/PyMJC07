@@ -5,9 +5,7 @@ from typing import List
 
 from pymjc.front.ast import *
 from pymjc.front.frame import Access, Frame
-from pymjc.front import translate
-from pymjc.front import tree
-from pymjc.front import temp
+from pymjc.front import temp, translate, tree
 from pymjc.front.visitorkinds import *
 from pymjc.front.symbol import *
 from pymjc.log import MJLogger
@@ -1535,10 +1533,10 @@ class TranslateVisitor(IRVisitor):
         escapes_list = List[bool]
         for i in range(self.symbol_table.curr_method.get_num_params()):
             escapes_list.append(False)
-
+        
         frame_aux = self.current_frame.new_frame(Symbol.symbol(element.class_name_id.name + "$" + self.symbol_table.curr_method_name), escapes_list)
         self.current_frame = frame_aux
-
+        
         stmt: translate.Exp = element.statement.accept_ir(self)
         return_exp: translate.Exp = translate.Exp(tree.CONST(0))
         body: tree.Stm = tree.MOVE(tree.TEMP(self.current_frame.RV()), tree.ESEQ(tree.EXP(stmt.un_ex()), return_exp.un_ex()))
@@ -1558,7 +1556,7 @@ class TranslateVisitor(IRVisitor):
 
         for index in range(element.var_decl_list.size()):
             element.var_decl_list.element_at(index).accept_ir(self)
-
+        
         for index in range(element.method_decl_list.size()):
             element.method_decl_list.element_at(index).accept_ir(self)
 
@@ -1570,7 +1568,7 @@ class TranslateVisitor(IRVisitor):
 
         for index in range(element.var_decl_list.size()):
             element.var_decl_list.element_at(index).accept_ir(self)
-
+        
         for index in range(element.method_decl_list.size()):
             element.method_decl_list.element_at(index).accept_ir(self)
 
@@ -1607,16 +1605,16 @@ class TranslateVisitor(IRVisitor):
             body = tree.EXP(element.statement_list.element_at(0).accept_ir(self).un_ex())
             for i in range(1, element.statement_list.size()):
                 body = tree.SEQ(body, tree.EXP(element.statement_list.element_at(i).accept_ir(self).un_ex()))
-
+            
             body = tree.MOVE(tree.TEMP(self.current_frame.RV()), tree.ESEQ(body, return_exp))
-
+        
         body_list.append(body)
         self.current_frame.proc_entry_exit1(body_list)
         self.proc_entry_exit(Converter.to_SEQ(body_list))
         self.var_access = {}
         return None
 
-
+    
     def visit_formal(self, element: Formal) -> translate.Exp:
         element.type.accept_ir(self)
         element.name_id.accept_ir(self)
@@ -1641,77 +1639,62 @@ class TranslateVisitor(IRVisitor):
             return translate.Nx(None)
 
         exp: translate.Exp = element.statement_list.element_at(0).accept_ir(self)
-
+        
         if(element.statement_list.size() == 1):
             return exp
-
+        
         stm: tree.Stm = exp.un_nx()
-
+        
         for i in range(1, element.statement_list.size()):
             exp = element.statement_list.element_at(i).accept_ir(self)
             stm = tree.SEQ(stm, exp.un_nx())
 
         return translate.Nx(stm)
 
-
+       
     def visit_if(self, element: If) -> translate.Exp:
         exp: translate.Exp = element.condition_exp.accept_ir(self)
         if_stm: translate.Exp = element.if_statement.accept_ir(self)
         else_stm: translate.Exp = element.else_statement.accept_ir(self)
-
+        
         true_label: temp.Label = temp.Label()
         false_label: temp.Label = temp.Label()
-        # end_if_label: temp.Label = temp.Label()
+        end_if_label: temp.Label = temp.Label()
 
-        if_then_else: translate.Exp = translate.IfThenElseExp(exp, if_stm, else_stm)
-
-        #return translate.Ex.un_cx(if_then_else.true_label, if_then_else.false_label)
-
-        return translate.Nx(if_then_else.un_cx(true_label, false_label))
-        # return translate.Nx(tree.SEQ(
-        #                         tree.SEQ(
-        #                             tree.SEQ(
-        #                                 tree.SEQ(
-        #                                     tree.CJUMP(tree.CJUMP.EQ, exp.un_ex(), tree.CONST(1), true_label, false_label),
-        #                                     tree.SEQ(tree.LABEL(true_label), if_stm.un_nx())),
-        #                                 tree.JUMP(end_if_label)),
-        #                             tree.SEQ(tree.LABEL(false_label), else_stm.un_nx())), 
-        #                         tree.LABEL(end_if_label)))
-
+        return translate.Nx(tree.SEQ(
+                                tree.SEQ(
+                                    tree.SEQ(
+                                        tree.SEQ(
+                                            tree.CJUMP(tree.CJUMP.EQ, exp.un_ex(), tree.CONST(1), true_label, false_label),
+                                            tree.SEQ(tree.LABEL(true_label), if_stm.un_nx())),
+                                        tree.JUMP(end_if_label)),
+                                    tree.SEQ(tree.LABEL(false_label), else_stm.un_nx())), 
+                                tree.LABEL(end_if_label)))
+  
 
     def visit_while(self, element: While) -> translate.Exp:
         test: temp.Label = temp.Label()
-        done: temp.Label = temp.Label()
-        # true_label: temp.Label = temp.Label()
-        # false_label: temp.Label = temp.Label()
+        true_label: temp.Label = temp.Label()
+        false_label: temp.Label = temp.Label()
         exp: translate.Exp = element.condition_exp.accept_ir(self)
         body: translate.Exp = element.statement.accept_ir(self)
 
-        if_stm: tree.Stm = tree.JUMP(done)
-        else_stm: tree.Stm = tree.SEQ(body.un_nx(),tree.JUMP(test))
-
-        not_condition: tree.BINOP = tree.BINOP(tree.BINOP.XOR, tree.CONST(1), exp.un_ex())
-
-        if_then_else: translate.Exp = translate.IfThenElseExp(not_condition, if_stm, else_stm)
-        while_stm: tree.Stm = tree.SEQ(tree.Label(test), tree.SEQ(if_then_else.un_nx(), tree.Label(done)))
-
-        return translate.Nx(while_stm)
-
-        # return translate.Nx(tree.SEQ(
-        #                         tree.SEQ(
-        #                             tree.SEQ(tree.LABEL(test),
-        #                                      tree.CJUMP(tree.CJUMP.EQ, exp.un_ex(), tree.CONST(1),true_label,false_label)),
-        #                             tree.SEQ(tree.LABEL(true_label),body.un_nx())), 
-        #                         tree.LABEL(false_label)))
+       
+        return translate.Nx(tree.SEQ(
+                                tree.SEQ(
+                                    tree.SEQ(tree.LABEL(test),
+                                             tree.CJUMP(tree.CJUMP.EQ, exp.un_ex(), tree.CONST(1),true_label,false_label)),
+                                    tree.SEQ(tree.LABEL(true_label),body.un_nx())), 
+                                tree.LABEL(false_label)))
 
 
 
     def visit_print(self, element: Print) -> translate.Exp:
         print_exp: translate.Exp = element.print_exp.accept_ir(self)
-
+        
         args = List[tree.Exp]
         args.add(print_exp.un_ex())
-
+        
         exp: tree.Exp = self.current_frame.external_call("print", args)
 
         return translate.Nx(tree.MOVE(tree.TEMP(temp.Temp()), exp))
@@ -1719,7 +1702,7 @@ class TranslateVisitor(IRVisitor):
     def visit_assign(self, element: Assign) -> translate.Exp:
         var: translate.Exp = element.left_side_id.accept_ir(self)
         exp: translate.Exp = element.right_side_exp.accept_ir(self)
-
+        
         if (isinstance(var.un_ex(), tree.TEMP)):
             return translate.Nx(tree.MOVE (var.un_ex(),  exp.un_ex()))
         else:
@@ -1747,42 +1730,28 @@ class TranslateVisitor(IRVisitor):
         true_label: temp.Label = temp.Label()
         false_label: temp.Label = temp.Label()
 
-        if_stm: translate.Nx = translate.Nx(tree.MOVE(
+        index_exp = tree.ESEQ(
+                        tree.SEQ(
+                            tree.SEQ(
+                                tree.SEQ(
+                                    tree.SEQ(
+                                        tree.SEQ(
+                                            tree.MOVE(
+                                                tree.TEMP(temp_index), 
+                                                tree.BINOP(tree.BINOP.MUL, index_exp, tree.CONST(word_size))),
+                                            tree.MOVE(tree.TEMP(temp_size), tree.MEM(array_exp))),
+                                        tree.CJUMP(tree.CJUMP.GE, tree.TEMP(temp_index), tree.TEMP(temp_size), true_label, false_label)),
+                                    tree.LABEL(true_label)),
+                                tree.MOVE(
                                     tree.TEMP(temp.Temp()), 
-                                    self.current_frame.external_call("_error", args)))
-        else_stm = translate.Nx(None)
-        condition = translate.RelCx(tree.CJUMP.GE, tree.TEMP(temp_index), tree.TEMP(temp_size))
-        if_then_else: translate.IfThenElseExp = translate.IfThenElseExp(condition, if_stm, else_stm)
-
-        index_exp = tree.ESEQ(tree.SEQ(
-            tree.SEQ(tree.MOVE(
-                tree.TEMP(temp_index),tree.BINOP(
-                    tree.BINOP.MUL, index_exp, tree.CONST(word_size))),tree.MOVE(
-                        tree.TEMP(temp_size), tree.MEM(array_exp))),if_then_else.un_cx(true_label, false_label)),tree.TEMP(temp_index))
-
-
-        # index_exp = tree.ESEQ(
-        #                 tree.SEQ(
-        #                     tree.SEQ(
-        #                         tree.SEQ(
-        #                             tree.SEQ(
-        #                                 tree.SEQ(
-        #                                     tree.MOVE(
-        #                                         tree.TEMP(temp_index), 
-        #                                         tree.BINOP(tree.BINOP.MUL, index_exp, tree.CONST(word_size))),
-        #                                     tree.MOVE(tree.TEMP(temp_size), tree.MEM(array_exp))),
-        #                                 tree.CJUMP(tree.CJUMP.GE, tree.TEMP(temp_index), tree.TEMP(temp_size), true_label, false_label)),
-        #                             tree.LABEL(true_label)),
-        #                         tree.MOVE(
-        #                             tree.TEMP(temp.Temp()), 
-        #                             self.current_frame.external_call("_error", args))), 
-        #                     tree.LABEL(false_label)),
-        #                 tree.TEMP(temp_index))
+                                    self.current_frame.external_call("_error", args))), 
+                            tree.LABEL(false_label)),
+                        tree.TEMP(temp_index))
 
 
 
         value_exp: tree.Exp = element.right_side_exp.accept_ir(self).un_ex()
-
+        
         return translate.Nx(
             tree.MOVE(tree.MEM(
                           tree.BINOP(
@@ -1842,34 +1811,18 @@ class TranslateVisitor(IRVisitor):
         args = List[tree.Exp]
         word_size = self.current_frame.word_size()
 
-        if_stm: translate.Nx = translate.Nx(tree.MOVE(
-                                    tree.TEMP(temp.Temp()), 
-                                    self.current_frame.external_call("_error", args)))
-        else_stm = translate.Nx(None)
-        condition = translate.RelCx(tree.CJUMP.GE,tree.TEMP(t_index),tree.TEMP(t_size))
-        if_then_else: translate.IfThenElseExp = translate.IfThenElseExp(condition, if_stm, else_stm)
-
-
         stm_01: tree.Stm = tree.SEQ(
+                                tree.SEQ(
                                     tree.SEQ(
-                                        tree.MOVE(tree.TEMP(t_index),tree.BINOP(tree.BINOP.MUL,index,tree.CONST(word_size))),
-                                        tree.MOVE(tree.TEMP(t_size),tree.MEM(array))),
-                                    if_then_else.un_cx(true_label, false_label))
-
-
-
-        # stm_01: tree.Stm = tree.SEQ(
-        #                         tree.SEQ(
-        #                             tree.SEQ(
-        #                                 tree.SEQ(
-        #                                     tree.SEQ(
-        #                                         tree.MOVE(tree.TEMP(t_index),tree.BINOP(tree.BINOP.MUL,index,tree.CONST(word_size))),
-        #                                         tree.MOVE(tree.TEMP(t_size),tree.MEM(array))),
-        #                                     tree.CJUMP(tree.CJUMP.GE,tree.TEMP(t_index),tree.TEMP(t_size),true_label,false_label)),
-        #                                     tree.LABEL(true_label)),
-        #                                     tree.MOVE(tree.TEMP(temp.Temp()), self.current_frame.external_call("_error",args))),
-        #                         tree.LABEL(false_label))
-
+                                        tree.SEQ(
+                                            tree.SEQ(
+                                                tree.MOVE(tree.TEMP(t_index),tree.BINOP(tree.BINOP.MUL,index,tree.CONST(word_size))),
+                                                tree.MOVE(tree.TEMP(t_size),tree.MEM(array))),
+                                            tree.CJUMP(tree.CJUMP.GE,tree.TEMP(t_index),tree.TEMP(t_size),true_label,false_label)),
+                                            tree.LABEL(true_label)),
+                                            tree.MOVE(tree.TEMP(temp.Temp()), self.current_frame.external_call("_error",args))),
+                                tree.LABEL(false_label))
+        
         t: temp.Temp = temp.Temp()
         stm_02: tree.Stm = tree.SEQ(
                                 stm_01,
@@ -1884,7 +1837,7 @@ class TranslateVisitor(IRVisitor):
                                                     tree.BINOP.MUL, index, 
                                                     tree.CONST(word_size)),
                                                     tree.CONST(word_size))))))
-
+        
         return translate.Ex(tree.ESEQ(stm_02,tree.TEMP(t)))
 
 
@@ -1896,16 +1849,16 @@ class TranslateVisitor(IRVisitor):
     def visit_call(self, element: Call) -> translate.Exp:
         class_exp: translate.Exp = element.callee_exp.accept_ir(self)
         fn_label: temp.Label = temp.Label(self.call_class_name + "$" + element.callee_name_id.name)
-
+        
         arg_list: tree.ExpList = tree.ExpList(class_exp.un_ex(), None)
         args = List[tree.Exp]
-
+        
         args.append(class_exp.un_ex())
 
         for i in range(element.arg_list.size()):
             arg: translate.Exp = element.arg_list.element_at(i).accept_ir(self)
             args.insert(0, arg.un_ex())
-
+        
         arg_list = Converter.to_ExpList(args)
         fn_call: tree.CALL = tree.CALL(tree.NAME(fn_label), arg_list)
         return translate.Ex(fn_call)
@@ -1926,15 +1879,15 @@ class TranslateVisitor(IRVisitor):
 
     def visit_identifier_exp(self, element: IdentifierExp) -> translate.Exp:
         type: Type  = self.symbol_table.curr_method.get_param_by_name(element.name)
-
+        
         if(type is None):
             type = self.symbol_table.curr_method.get_local_by_name(element.name)
             if(type is None):
                 type = self.symbol_table.curr_class.get_field(element.name)
-
+        
         if (isinstance(type, IdentifierType)):
             self.call_class_name = type.name
-
+            
         access: Access = self.var_access.get(element.name)
         if (access is None):
             access = self.current_frame.alloc_local(False)
@@ -1958,7 +1911,7 @@ class TranslateVisitor(IRVisitor):
         temp_02: temp.Temp = temp.Temp()
         args = List[tree.Exp]
         args.append(array_size)
-
+        
        # call malloc get pointer to space allocated in temp_01
         alloc: tree.Exp = self.current_frame.external_call("malloc", args)
         stm_01: tree.Stm = tree.MOVE(tree.TEMP(temp_01), alloc)
@@ -1967,37 +1920,22 @@ class TranslateVisitor(IRVisitor):
         false_label: temp.Label = temp.Label()
         true_label: temp.Label = temp.Label()
 
-
-
-        if_stm: translate.Nx = translate.Nx(tree.MOVE(tree.MEM(tree.TEMP(temp_01)),tree.BINOP(tree.BINOP.MUL,exp.un_ex(),tree.CONST(word_size))))
-        else_stm: translate.Nx = translate.Nx(tree.MOVE(tree.MEM(tree.BINOP(tree.BINOP.PLUS,tree.TEMP(temp_01),tree.TEMP(temp_02))),tree.CONST(0)))
-        condition = translate.RelCx(tree.CJUMP.LT,tree.TEMP(temp_02), array_size)
-        if_then_else: translate.IfThenElseExp = translate.IfThenElseExp(condition, if_stm, else_stm)
-
-
         # array initialization
-
         stm_02: tree.Stm = tree.SEQ(
                                 tree.SEQ(
-                                    tree.MOVE(tree.TEMP(temp_02),tree.CONST(word_size)),
-                                                if_then_else.un_cx(false_label, true_label)))
+                                    tree.SEQ(
+                                        tree.SEQ(
+                                            tree.SEQ(
+                                                tree.SEQ(
+                                                    tree.MOVE(tree.TEMP(temp_02),tree.CONST(word_size)),
+                                                    tree.SEQ(tree.LABEL(cj), tree.CJUMP(tree.CJUMP.LT, tree.TEMP(temp_02), array_size, false_label, true_label))),
+                                                tree.LABEL(true_label)),
+                                            tree.MOVE(tree.MEM(tree.BINOP(tree.BINOP.PLUS,tree.TEMP(temp_01),tree.TEMP(temp_02))),tree.CONST(0))),
+                                        tree.MOVE(tree.TEMP(temp_02),tree.BINOP(tree.BINOP.PLUS,tree.TEMP(temp_02), tree.CONST(word_size)))),
+                                    tree.JUMP(cj)),
+                                tree.SEQ(tree.LABEL(false_label),tree.MOVE(tree.MEM(tree.TEMP(temp_01)),tree.BINOP(tree.BINOP.MUL,exp.un_ex(),tree.CONST(word_size)))))
 
-
-        # stm_02: tree.Stm = tree.SEQ(
-        #                         tree.SEQ(
-        #                             tree.SEQ(
-        #                                 tree.SEQ(
-        #                                     tree.SEQ(
-        #                                         tree.SEQ(
-        #                                             tree.MOVE(tree.TEMP(temp_02),tree.CONST(word_size)),
-        #                                             tree.SEQ(tree.LABEL(cj), tree.CJUMP(tree.CJUMP.LT, tree.TEMP(temp_02), array_size, false_label, true_label))),
-        #                                         tree.LABEL(true_label)),
-        #                                     tree.MOVE(tree.MEM(tree.BINOP(tree.BINOP.PLUS,tree.TEMP(temp_01),tree.TEMP(temp_02))),tree.CONST(0))),
-        #                                 tree.MOVE(tree.TEMP(temp_02),tree.BINOP(tree.BINOP.PLUS,tree.TEMP(temp_02), tree.CONST(word_size)))),
-        #                             tree.JUMP(cj)),
-        #                         tree.SEQ(tree.LABEL(false_label),tree.MOVE(tree.MEM(tree.TEMP(temp_01)),tree.BINOP(tree.BINOP.MUL,exp.un_ex(),tree.CONST(word_size)))))
-
-
+	       
         return translate.Ex(tree.ESEQ(tree.SEQ(stm_01,stm_02), tree.TEMP(temp_01)))
 
 
@@ -2008,7 +1946,7 @@ class TranslateVisitor(IRVisitor):
 
         params = List[tree.Exp]
         params.append(tree.BINOP(tree.BINOP.MUL, tree.CONST(tam + 1), tree.CONST(self.current_frame.word_size())))
-
+        
         alloc: tree.Exp = self.current_frame.external_call("malloc", params)
         return translate.Ex(tree.MOVE(tree.TEMP(temp.Temp()), alloc))
 
@@ -2025,5 +1963,5 @@ class TranslateVisitor(IRVisitor):
         if access is None:
             access = self.current_frame.alloc_local(False)
             self.var_access[element.name] = access
-
+        
         return translate.Ex(access.exp(tree.TEMP(self.current_frame.FP())))
