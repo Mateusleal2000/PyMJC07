@@ -80,23 +80,22 @@
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Apesar de termos feito a implementação de todos os métodos presentes no visitor, não fomos capazes de realizar os testes
-
+    > Parcialmente, adicionalmente às mudanças feitas anteriormente, foram feitas algumas melhorias nos visitors do if, while, arraylookup, newarray e arrayassign, utilizando os métodos RelCx e IfThenElseExp
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Faltaram a realização de testes
+    > Não temos certeza se as mudanças feitas são o suficiente
 
 4. O programa passa nos testes automatizados?
     
-    > Não houveram testes automatizados
+    > Não existem testes
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
     
-    > Não houveram testes automatizados
+    > Não existem testes
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
     
-    > A implementação de alguns métodos foram bem desafiadoras, especialmente os métodos visit_identifier e visit_identifier_exp, não estava ficando claro para nós como as verificações deveriam ser feitas. Algumas operações, principalmente as que envolvem o call_class_name, foram um pouco complicadas de compreender.
+    > Compreender quais visitors deveriamos modificar, além disso, entender como melhorar e quais métodos novos utilizar
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
     
@@ -138,31 +137,31 @@
 
 1. Qual é o nome do relator?
 
-    > Escreva sua resposta aqui
+    > Gabriel Marques Maranhão
 
 2. A etapa foi completamente ou parcialmente concluída?
 
-    > Escreva sua resposta aqui
+    > Parcialmente concluída
 
 3. No caso de parcialmente concluída, o que não foi concluído?
 
-    > Escreva sua resposta aqui
+    > A tradução do arquivo RegAlloc não foi feita, e o método build_interference_graph() não foi concluído.
 
 4. O programa passa nos testes automatizados?
     
-    > Escreva sua resposta aqui
+    > Não existem testes automatizados
 
 5. Algum erro de execução foi encontrado para alguma das entradas? Quais?
     
-    > Escreva sua resposta aqui
+    > Não existem testes automatizados
 
 6. Quais as dificuldades encontradas para realização da etapa do projeto?
-    
-    > Escreva sua resposta aqui
+    > Dificuldade de entender como construir o grafo de interferências, além da falta de tempo devido à uma má organização do nosso tempo e ao choque de horários com atividades de outras disciplinas, o que tornou inviável a implementação das seções mais extensas desse código.
 
 7. Qual a participação de cada membro da equipe na etapa de execução?
-    
-    > Escreva sua resposta aqui
+
+   > O trabalho foi realizado em conjunto por todos os integrantes, as reuniões foram realizadas por meio de conferências online (Discord) com o intuito de debater sobre a implementação e implementar. Todos os integrantes participaram ativamente da implementação.
+
 
 
 # 6º Relatóio: Etapa AI-f (Integração e Geração do Código Final)

@@ -4,10 +4,10 @@ Este repositório tem como objetivo fazer as entregas do projeto da disciplina d
 
 # Equipe Responável
 
-Os seguintes alunos (equipe XXXXX) são responsáveis pelo projeto: 
+Os seguintes alunos (equipe 7) são responsáveis pelo projeto: 
 
--  Matrícula: 470374 | Aluno: Gabriel Marques Maranhão 
--  Matrícula: 473673 | Aluno: Mateus Leal Gonçalves
+-  Mátricula: 470374 | Aluno: Gabriel Marques Maranhão 
+-  Mátricula: 473674 | Aluno: Mateus Leal Gonçalves
 
 # Método de Avaliação
 
